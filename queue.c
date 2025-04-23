@@ -24,15 +24,10 @@ void q_free(struct list_head *head)
         return;
     }
 
-    if (list_empty(head)) {
-        free(head);
-        return;
-    }
-    // element_t *q_head = list_entry(head, element_t, struct list_head);
     element_t *q_head = NULL, *q_next = NULL;
 
     list_for_each_entry_safe(q_head, q_next, head, list)
-        free(q_head);
+        q_release_element(q_head);
     free(head);
 }
 
