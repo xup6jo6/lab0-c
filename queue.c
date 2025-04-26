@@ -45,6 +45,11 @@ bool q_insert_head(struct list_head *head, char *s)
     }
 
     item->value = strdup(s);
+    if (!item->value) {
+        fprintf(stderr, "malloc failed\n");
+        free(item);
+        return false;
+    }
 
     list_add(&item->list, head);
 
@@ -64,6 +69,13 @@ bool q_insert_tail(struct list_head *head, char *s)
     }
 
     item->value = strdup(s);
+    // strdup also allocates memory space
+    // Need to check if allocation fails after calling strdup()
+    if (!item->value) {
+        fprintf(stderr, "malloc failed\n");
+        free(item);
+        return false;
+    }
 
     list_add_tail(&item->list, head);
 
