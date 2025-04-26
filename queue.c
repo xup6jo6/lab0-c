@@ -144,6 +144,36 @@ err:
 /* Delete all nodes that have duplicate string */
 bool q_delete_dup(struct list_head *head)
 {
+    if (!head) {
+        return false;
+    }
+
+    element_t *it = NULL, *safe = NULL;
+    struct list_head *pending = malloc(sizeof(struct list_head));
+    bool flag = false;
+
+    INIT_LIST_HEAD(pending);
+    list_for_each_entry_safe(it, safe, head, list) {
+        if (&safe->list != head && strcmp(it->value, safe->value) != 0) {
+            if (flag) {
+                list_del(&it->list);
+                list_add_tail(&it->list, pending);
+                flag = false;
+            }
+            continue;
+        }
+        if (it->list.next != head) {
+            list_del(&it->list);
+            list_add_tail(&it->list, pending);
+            flag = true;
+        }
+    }
+
+    q_free(pending);
+    /*list_for_each_entry_safe(it, safe, pending, list) {
+        q_release_element(it);
+    }*/
+
     // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
     return true;
 }
@@ -171,7 +201,26 @@ void q_sort(struct list_head *head, bool descend) {}
 int q_ascend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    element_t *left = NULL, *right = NULL;
+    struct list_head *pending = malloc(sizeof(struct list_head));
+
+    if (!head) {
+        return 0;
+    }
+
+    INIT_LIST_HEAD(pending);
+
+    list_for_each_entry_safe(left, right, head, list) {
+        printf("l:%s r:%s\n", left->value, right->value);
+        if (&right->list != head && strcmp(right->value, left->value) < 0) {
+            list_del(&right->list);
+            list_add_tail(&right->list, pending);
+        }
+    }
+
+    q_free(pending);
+
+    return q_size(head);
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
