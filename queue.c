@@ -245,19 +245,22 @@ int q_ascend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
     element_t *left = NULL, *right = NULL;
-    struct list_head *pending = malloc(sizeof(struct list_head));
+    struct list_head *pending;
 
-    if (!head) {
+    if (!head || list_empty(head) || list_is_singular(head)) {
         return 0;
     }
+
+    pending = malloc(sizeof(struct list_head));
 
     INIT_LIST_HEAD(pending);
 
     list_for_each_entry_safe(left, right, head, list) {
-        printf("l:%s r:%s\n", left->value, right->value);
-        if (&right->list != head && strcmp(right->value, left->value) < 0) {
-            list_del(&right->list);
-            list_add_tail(&right->list, pending);
+        while (&left->list != head && &right->list != head &&
+               strcmp(right->value, left->value) < 0) {
+            list_del(&left->list);
+            list_add_tail(&left->list, pending);
+            left = list_entry(right->list.prev, element_t, list);
         }
     }
 
@@ -270,8 +273,30 @@ int q_ascend(struct list_head *head)
  * the right side of it */
 int q_descend(struct list_head *head)
 {
+    element_t *left = NULL, *right = NULL;
+    struct list_head *pending;
+
+    if (!head || list_empty(head) || list_is_singular(head)) {
+        return 0;
+    }
+
+    pending = malloc(sizeof(struct list_head));
+
+    INIT_LIST_HEAD(pending);
+
+    list_for_each_entry_safe(left, right, head, list) {
+        while (&left->list != head && &right->list != head &&
+               strcmp(right->value, left->value) > 0) {
+            list_del(&left->list);
+            list_add_tail(&left->list, pending);
+            left = list_entry(right->list.prev, element_t, list);
+        }
+    }
+
+    q_free(pending);
+
+    return q_size(head);
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
 }
 
 /* Merge all the queues into one sorted queue, which is in ascending/descending
