@@ -256,8 +256,65 @@ void q_reverseK(struct list_head *head, int k)
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
 }
 
+/* Get the last node for left partition*/
+struct list_head *get_middle_list_node(struct list_head *head)
+{
+    if (list_empty(head) || list_is_singular(head)) {
+        return head;
+    }
+    struct list_head *left, *right;
+    left = head->next;
+    right = head->prev;
+
+    while (right != left && left->next != right) {
+        left = left->next;
+        right = right->prev;
+    }
+    return left;
+}
+
 /* Sort elements of queue in ascending/descending order */
-void q_sort(struct list_head *head, bool descend) {}
+void q_sort(struct list_head *head, bool descend)
+{
+    if (!head || list_empty(head) || list_is_singular(head)) {
+        return;
+    }
+
+    struct list_head *middle_node = get_middle_list_node(head);
+
+    // Do partition and set middle node as the last node of left part
+    LIST_HEAD(left);
+    LIST_HEAD(right);
+    list_cut_position(&left, head, middle_node);
+    list_splice_init(head, &right);
+
+    q_sort(&left, descend);
+    q_sort(&right, descend);
+
+    // Merge 2 partitions
+    while (!list_empty(&left) && !list_empty(&right)) {
+        element_t *element_in_A = list_first_entry(&left, element_t, list);
+        element_t *element_in_B = list_first_entry(&right, element_t, list);
+        if (descend) {
+            if (strcmp(element_in_A->value, element_in_B->value) >= 0) {
+                list_move_tail(&element_in_A->list, head);
+            } else {
+                list_move_tail(&element_in_B->list, head);
+            }
+        } else {
+            if (strcmp(element_in_A->value, element_in_B->value) <= 0) {
+                list_move_tail(&element_in_A->list, head);
+            } else {
+                list_move_tail(&element_in_B->list, head);
+            }
+        }
+    }
+    if (!list_empty(&left)) {
+        list_splice_tail_init(&left, head);
+    } else if (!list_empty(&right)) {
+        list_splice_tail_init(&right, head);
+    }
+}
 
 /* Remove every node which has a node with a strictly less value anywhere to
  * the right side of it */
