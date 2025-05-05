@@ -178,6 +178,8 @@ bool q_delete_dup(struct list_head *head)
             list_del(&it->list);
             list_add_tail(&it->list, pending);
             flag = true;
+        } else if (flag) {
+            list_move_tail(&it->list, pending);
         }
     }
 
