@@ -275,6 +275,35 @@ struct list_head *get_middle_list_node(struct list_head *head)
     return left;
 }
 
+void merge(struct list_head *left, struct list_head *right, bool descend)
+{
+    struct list_head tmp_list;
+    INIT_LIST_HEAD(&tmp_list);
+    while (!list_empty(left) && !list_empty(right)) {
+        element_t *element_in_A = list_first_entry(left, element_t, list);
+        element_t *element_in_B = list_first_entry(right, element_t, list);
+        if (descend) {
+            if (strcmp(element_in_A->value, element_in_B->value) >= 0) {
+                list_move_tail(&element_in_A->list, &tmp_list);
+            } else {
+                list_move_tail(&element_in_B->list, &tmp_list);
+            }
+        } else {
+            if (strcmp(element_in_A->value, element_in_B->value) <= 0) {
+                list_move_tail(&element_in_A->list, &tmp_list);
+            } else {
+                list_move_tail(&element_in_B->list, &tmp_list);
+            }
+        }
+    }
+    if (!list_empty(left)) {
+        list_splice_tail_init(left, &tmp_list);
+    } else if (!list_empty(right)) {
+        list_splice_tail_init(right, &tmp_list);
+    }
+    list_splice_tail_init(&tmp_list, right);
+}
+
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
 {
@@ -288,34 +317,13 @@ void q_sort(struct list_head *head, bool descend)
     LIST_HEAD(left);
     LIST_HEAD(right);
     list_cut_position(&left, head, middle_node);
-    list_splice_init(head, &right);
+    // list_splice_init(head, &right);
 
     q_sort(&left, descend);
-    q_sort(&right, descend);
+    q_sort(head, descend);
 
     // Merge 2 partitions
-    while (!list_empty(&left) && !list_empty(&right)) {
-        element_t *element_in_A = list_first_entry(&left, element_t, list);
-        element_t *element_in_B = list_first_entry(&right, element_t, list);
-        if (descend) {
-            if (strcmp(element_in_A->value, element_in_B->value) >= 0) {
-                list_move_tail(&element_in_A->list, head);
-            } else {
-                list_move_tail(&element_in_B->list, head);
-            }
-        } else {
-            if (strcmp(element_in_A->value, element_in_B->value) <= 0) {
-                list_move_tail(&element_in_A->list, head);
-            } else {
-                list_move_tail(&element_in_B->list, head);
-            }
-        }
-    }
-    if (!list_empty(&left)) {
-        list_splice_tail_init(&left, head);
-    } else if (!list_empty(&right)) {
-        list_splice_tail_init(&right, head);
-    }
+    merge(&left, head, descend);
 }
 
 /* Remove every node which has a node with a strictly less value anywhere to
