@@ -45,6 +45,8 @@ bool q_insert_head(struct list_head *head, char *s)
     }
 
     item->value = strdup(s);
+    // strdup also allocates memory space
+    // Need to check if allocation fails after calling strdup()
     if (!item->value) {
         fprintf(stderr, "malloc failed\n");
         free(item);
@@ -59,27 +61,10 @@ bool q_insert_head(struct list_head *head, char *s)
 /* Insert an element at tail of queue */
 bool q_insert_tail(struct list_head *head, char *s)
 {
-    element_t *item = malloc(sizeof(element_t));
-    if (!item)
-        return false;
-
     if (!head) {
-        free(item);
         return false;
     }
-
-    item->value = strdup(s);
-    // strdup also allocates memory space
-    // Need to check if allocation fails after calling strdup()
-    if (!item->value) {
-        fprintf(stderr, "malloc failed\n");
-        free(item);
-        return false;
-    }
-
-    list_add_tail(&item->list, head);
-
-    return true;
+    return q_insert_head(head->prev, s);
 }
 
 /* Remove an element from head of queue */
@@ -99,16 +84,10 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 /* Remove an element from tail of queue */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
-    if (!head || list_empty(head)) {
+    if (!head) {
         return NULL;
     }
-    element_t *tmp_remove = list_last_entry(head, element_t, list);
-    list_del(&tmp_remove->list);
-    if (sp) {
-        strncpy(sp, tmp_remove->value, bufsize - 1);
-        sp[bufsize - 1] = '\0';
-    }
-    return tmp_remove;
+    return q_remove_head(head->prev->prev, sp, bufsize);
 }
 
 /* Return number of elements in queue */
